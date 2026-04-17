@@ -1,18 +1,56 @@
 # pybusy
-Based off of cli-spinners
 
-This was gonna be something until I found out something already existed and does a better job, so i guess this is for me
+Minimal, dependency-free CLI spinner for Python.
 
-### Example usage:
+Finally, a Python spinner that isn't bloated.
 
+No configuration. No bloat. Just works.
+
+## Install
+
+```bash
+pip install pybusy
 ```
-from pybusy import cursors
-print(cursors.cursor_list())
->>> ['dots', 'dots2', 'dots3', 'dots4'...
-cursors.animate('dots2', color='yellow')
-⠋
+
+## Usage
+
+### Context manager
+
+```python
+from pybusy import spinner
+import time
+
+with spinner("Processing..."):
+    time.sleep(2)
 ```
 
-### Colors are dependent on ansicolors
+### Manual control
 
-have fun
+```python
+from pybusy import spinner
+import time
+
+s = spinner("Loading...")
+s.start()
+time.sleep(2)
+s.success("Done")
+```
+
+## Why pybusy?
+
+- No dependencies
+- Clean terminal output
+- Works in CI / non-TTY environments
+- Minimal API surface
+- Designed for real CLI tools
+
+## Build and publish
+
+```bash
+# Build
+python -m build
+
+# Upload (first time)
+pip install twine
+twine upload dist/*
+```
