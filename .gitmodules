@@ -1,3 +1,0 @@
-[submodule "pybusy/spinners"]
-	path = pybusy/spinners
-	url = git@github.com:krazybean/cli-spinners.git
