@@ -2,9 +2,7 @@
 
 Minimal, dependency-free CLI spinner for Python.
 
-Finally, a Python spinner that isn't bloated.
-
-No configuration. No bloat. Just works.
+Finally, a spinner that doesn’t get in your way.
 
 ## Install
 
@@ -36,21 +34,15 @@ time.sleep(2)
 s.success("Done")
 ```
 
+## Demo
+
+```text
+✔ Processing files...
+```
+
 ## Why pybusy?
 
 - No dependencies
 - Clean terminal output
 - Works in CI / non-TTY environments
 - Minimal API surface
-- Designed for real CLI tools
-
-## Build and publish
-
-```bash
-# Build
-python -m build
-
-# Upload (first time)
-pip install twine
-twine upload dist/*
-```
