@@ -1,5 +1,9 @@
 # pybusy
 
+![PyPI](https://img.shields.io/pypi/v/pybusy?cacheSeconds=60)
+![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![License](https://img.shields.io/github/license/krazybean/pybusy)
+
 Minimal, dependency-free CLI spinner for Python.
 
 Finally, a spinner that doesn’t get in your way.
