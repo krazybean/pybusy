@@ -1,0 +1,26 @@
+[project]
+name = "pybusy"
+version = "0.1.1"
+description = "Minimal, dependency-free CLI spinner for Python"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+authors = [{ name = "Juan Castro" }]
+keywords = ["cli", "spinner", "terminal", "progress", "ux", "developer-tools"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Terminals",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["pybusy*"]
