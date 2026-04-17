@@ -11,7 +11,6 @@ from .styles import STYLES
 HIDE_CURSOR = "\033[?25l"
 SHOW_CURSOR = "\033[?25h"
 
-
 class Spinner:
     def __init__(self, message: str, style: str = "dots"):
         self.message = message
@@ -25,18 +24,6 @@ class Spinner:
         self._running = False
         self._cursor_hidden = False
         self._last_length = 0
-
-    def start(self):
-        if self._thread and self._thread.is_alive():
-            return self
-        if not self._enabled:
-            return self
-        self._running = True
-        self._stop.clear()
-        self._thread = threading.Thread(target=self._animate, daemon=True)
-        self._thread.start()
-        return self
-
     def _write(self, text: str):
         with self._lock:
             sys.stdout.write(text)
@@ -81,6 +68,16 @@ class Spinner:
             self._running = False
             self._show_cursor()
 
+    def start(self):
+        if self._thread and self._thread.is_alive():
+            return self
+        if not self._enabled:
+            return self
+        self._running = True
+        self._stop.clear()
+        self._thread = threading.Thread(target=self._animate, daemon=True)
+        self._thread.start()
+        return self
     def stop(self):
         self._running = False
         self._stop.set()
@@ -116,5 +113,5 @@ class Spinner:
         return False
 
 
-def spinner(message: str, style: str = "dots"):
+def spinner(message: str, style: str = "dots") -> Spinner:
     return Spinner(message, style)
