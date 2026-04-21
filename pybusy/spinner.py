@@ -5,31 +5,51 @@ import shutil
 import sys
 import threading
 import time
+from typing import List, Optional, TextIO
 
 from .styles import STYLES
 
 HIDE_CURSOR = "\033[?25l"
 SHOW_CURSOR = "\033[?25h"
 
+
+def _resolve_frames(spinner_name: str, frames: Optional[List[str]]) -> List[str]:
+    if frames:
+        return list(frames)
+    return STYLES.get(spinner_name, STYLES["dots"])
+
+
 class Spinner:
-    def __init__(self, message: str, style: str = "dots"):
+    def __init__(
+        self,
+        message: str,
+        style: str = "dots",
+        spinner: Optional[str] = None,
+        frames: Optional[List[str]] = None,
+        stream: Optional[TextIO] = None,
+        interval: float = 0.1,
+        start_delay: float = 0.1,
+    ):
         self.message = message
-        self.frames = STYLES.get(style, STYLES["dots"])
-        self.interval = 0.1
-        self._start_delay = 0.1
-        self._enabled = sys.stdout.isatty()
+        spinner_name = spinner if spinner is not None else style
+        self.frames = _resolve_frames(spinner_name, frames)
+        self.interval = interval
+        self._start_delay = start_delay
+        self.stream = stream if stream is not None else sys.stderr
+        self._enabled = bool(getattr(self.stream, "isatty", lambda: False)())
         self._stop = threading.Event()
         self._lock = threading.Lock()
-        self._thread = None
+        self._thread: Optional[threading.Thread] = None
         self._running = False
         self._cursor_hidden = False
         self._last_length = 0
+
     def _write(self, text: str):
         with self._lock:
-            sys.stdout.write(text)
-            sys.stdout.flush()
+            self.stream.write(text)
+            self.stream.flush()
 
-    def _terminal_width(self):
+    def _terminal_width(self) -> int:
         return shutil.get_terminal_size(fallback=(80, 24)).columns
 
     def _hide_cursor(self):
@@ -68,17 +88,19 @@ class Spinner:
             self._running = False
             self._show_cursor()
 
-    def start(self):
+    def start(self) -> "Spinner":
         if self._thread and self._thread.is_alive():
             return self
         if not self._enabled:
             return self
+
         self._running = True
         self._stop.clear()
         self._thread = threading.Thread(target=self._animate, daemon=True)
         self._thread.start()
         return self
-    def stop(self):
+
+    def stop(self) -> "Spinner":
         self._running = False
         self._stop.set()
         thread = self._thread
@@ -86,32 +108,83 @@ class Spinner:
             thread.join()
         self._clear()
         self._show_cursor()
+        return self
 
-    def _finish(self, symbol: str, default_message: str, message: str = None):
+    def _finish(self, symbol: str, default_message: str, message: Optional[str] = None) -> "Spinner":
         self.stop()
         text = default_message if message is None else message
         self._write(f"{symbol} {text}\n")
+        return self
 
-    def success(self, message: str = None):
-        self._finish("✔", "Done", message)
+    def success(self, message: Optional[str] = None) -> "Spinner":
+        return self._finish("✔", "Done", message)
 
-    def fail(self, message: str = None):
-        self._finish("✖", "Failed", message)
+    def failure(self, message: Optional[str] = None) -> "Spinner":
+        return self._finish("✖", "Failed", message)
 
-    def update(self, message: str):
+    def fail(self, message: Optional[str] = None) -> "Spinner":
+        return self.failure(message)
+
+    def update(self, message: str) -> "Spinner":
         self.message = message
+        return self
 
-    def __enter__(self):
+    def step(self, message: str) -> "Spinner":
+        return self.update(message)
+
+    def __enter__(self) -> "Spinner":
         self.start()
         return self
 
-    def __exit__(self, exc_type, exc, tb):
+    def __exit__(self, exc_type, exc, tb) -> bool:
         if exc_type is not None:
-            self.fail("Failed")
+            self.failure("Failed")
         else:
             self.success("Done")
         return False
 
+    async def __aenter__(self) -> "Spinner":
+        return self.__enter__()
 
-def spinner(message: str, style: str = "dots") -> Spinner:
-    return Spinner(message, style)
+    async def __aexit__(self, exc_type, exc, tb) -> bool:
+        return self.__exit__(exc_type, exc, tb)
+
+
+def spinner(
+    message: str,
+    style: str = "dots",
+    spinner: Optional[str] = None,
+    frames: Optional[List[str]] = None,
+    stream: Optional[TextIO] = None,
+    interval: float = 0.1,
+    start_delay: float = 0.1,
+) -> Spinner:
+    return Spinner(
+        message,
+        style=style,
+        spinner=spinner,
+        frames=frames,
+        stream=stream,
+        interval=interval,
+        start_delay=start_delay,
+    )
+
+
+def busy(
+    message: str,
+    style: str = "dots",
+    spinner: Optional[str] = None,
+    frames: Optional[List[str]] = None,
+    stream: Optional[TextIO] = None,
+    interval: float = 0.1,
+    start_delay: float = 0.1,
+) -> Spinner:
+    return Spinner(
+        message,
+        style=style,
+        spinner=spinner,
+        frames=frames,
+        stream=stream,
+        interval=interval,
+        start_delay=start_delay,
+    )
