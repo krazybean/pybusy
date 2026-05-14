@@ -47,11 +47,8 @@ echo "Updating version: $OLD_VERSION -> $NEW_VERSION"
 perl -0pi -e "s/version = \"$OLD_VERSION\"/version = \"$NEW_VERSION\"/" pyproject.toml
 perl -0pi -e "s/__version__ = \"$OLD_VERSION\"/__version__ = \"$NEW_VERSION\"/" pybusy/__init__.py
 
-echo "Cleaning previous builds..."
-rm -rf dist/ build/ *.egg-info
-
-echo "Building package..."
-python -m build
+echo "Building package and checksums..."
+scripts/build-dist.sh
 
 if ! compgen -G "dist/*" > /dev/null; then
   echo "Build failed - no artifacts found"

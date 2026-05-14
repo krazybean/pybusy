@@ -6,7 +6,7 @@ on:
       - "v*"
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
 
     permissions:
@@ -27,10 +27,46 @@ jobs:
           pip install build twine
 
       - name: Build package
-        run: python -m build
+        run: scripts/build-dist.sh
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pybusy-dist
+          path: dist/
+          if-no-files-found: error
+
+      - name: VirusTotal lookup
+        continue-on-error: true
+        env:
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        run: python scripts/virustotal_release_check.py >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: pypi
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pybusy-dist
+          path: dist/
+
+      - name: Prepare PyPI upload directory
+        run: |
+          mkdir publish-dist
+          cp dist/*.whl dist/*.tar.gz publish-dist/
 
       - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: publish-dist/
+          attestations: true
+          verify-metadata: true
+          skip-existing: false
